@@ -1,0 +1,30 @@
+name: Build TrollStore IPA
+on: [push]
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Unity
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          targetPlatform: iOS
+
+      - name: Package IPA for TrollStore
+        run: |
+          mkdir -p build/Payload
+          cp -r build/iOS/*.app build/Payload/ 2>/dev/null || cp -r build/iOS/build/Release-iphoneos/*.app build/Payload/
+          cd build
+          zip -r Game_TrollStore.ipa Payload/
+
+      - name: Upload Result
+        uses: actions/upload-artifact@v4
+        with:
+          name: MyGame-TrollStore
+          path: build/Game_TrollStore.ipa
